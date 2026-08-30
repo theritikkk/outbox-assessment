@@ -8,6 +8,8 @@
     "dev:worker": "pnpm --filter @reachinbox/backend dev:worker",
     "dev:frontend": "pnpm --filter @reachinbox/frontend dev",
     "build": "pnpm -r build",
+    "start": "node apps/backend/dist/server.js",
+    "start:worker": "node apps/backend/dist/worker.js",
     "build:backend": "pnpm --filter @reachinbox/backend build",
     "build:frontend": "pnpm --filter @reachinbox/frontend build",
     "test": "pnpm --filter @reachinbox/backend test",

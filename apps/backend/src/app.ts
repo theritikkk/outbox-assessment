@@ -21,10 +21,16 @@ import emailRoutes from './routes/email.routes';
 import slackRoutes from './routes/slack.routes';
 import healthRoutes from './routes/health.routes';
 
+import path from 'path';
+
 const app = express();
 
-app.use(helmet());
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+app.set('trust proxy', 1);
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
@@ -68,6 +74,25 @@ createBullBoard({
   serverAdapter,
 });
 app.use('/admin/queues', serverAdapter.getRouter());
+
+// Serve frontend static build if available
+const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
+
+app.get('*', (req, res, next) => {
+  if (
+    req.path.startsWith('/api') || 
+    req.path.startsWith('/admin') || 
+    req.path === '/health' || 
+    req.path === '/ready'
+  ) {
+    return next();
+  }
+  const indexPath = path.resolve(frontendDistPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) next();
+  });
+});
 
 // Error handler (must be last)
 app.use(errorHandler);

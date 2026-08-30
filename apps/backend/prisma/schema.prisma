@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(uuid())
+  googleId        String           @unique
+  name            String
+  email           String           @unique
+  avatarUrl       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  campaigns       EmailCampaign[]
+  senderAccounts  SenderAccount[]
+  slackConnection SlackConnection?
+}
+
+model SenderAccount {
+  id           String          @id @default(uuid())
+  userId       String
+  email        String
+  displayName  String
+  smtpHost     String
+  smtpPort     Int
+  smtpUser     String
+  smtpPassword String
+  hourlyLimit  Int             @default(200)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  emails       Email[]
+  campaigns    EmailCampaign[]
+  user         User            @relation(fields: [userId], references: [id])
+
+  @@unique([userId, email])
+}
+
+model EmailCampaign {
+  id                 String         @id @default(uuid())
+  userId             String
+  senderId           String
+  subject            String
+  body               String
+  startAt            DateTime
+  delayBetweenEmails Int            @default(2)
+  hourlyLimit        Int            @default(200)
+  status             CampaignStatus @default(DRAFT)
+  totalEmails        Int            @default(0)
+  sentCount          Int            @default(0)
+  failedCount        Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  emails             Email[]
+  sender             SenderAccount  @relation(fields: [senderId], references: [id])
+  user               User           @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Email {
+  id                String        @id @default(uuid())
+  campaignId        String
+  senderId          String
+  recipient         String
+  subject           String
+  body              String
+  scheduledAt       DateTime
+  sentAt            DateTime?
+  status            EmailStatus   @default(PENDING)
+  attempts          Int           @default(0)
+  idempotencyKey    String        @unique
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  campaign          EmailCampaign @relation(fields: [campaignId], references: [id])
+  sender            SenderAccount @relation(fields: [senderId], references: [id])
+
+  @@index([campaignId])
+  @@index([senderId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([recipient])
+}
+
+model SlackConnection {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  teamId         String
+  teamName       String
+  channelId      String?
+  accessToken    String
+  botUserId      String?
+  connectedAt    DateTime  @default(now())
+  disconnectedAt DateTime?
+  user           User      @relation(fields: [userId], references: [id])
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULING
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+enum EmailStatus {
+  PENDING
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  RATE_LIMITED
+}

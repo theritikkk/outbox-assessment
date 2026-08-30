@@ -1,0 +1,28 @@
+{
+  "name": "reachinbox-email-scheduler",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Production-grade email scheduling system for ReachInbox.ai assessment",
+  "scripts": {
+    "dev:backend": "pnpm --filter @reachinbox/backend dev",
+    "dev:worker": "pnpm --filter @reachinbox/backend dev:worker",
+    "dev:frontend": "pnpm --filter @reachinbox/frontend dev",
+    "build": "pnpm -r build",
+    "build:backend": "pnpm --filter @reachinbox/backend build",
+    "build:frontend": "pnpm --filter @reachinbox/frontend build",
+    "test": "pnpm --filter @reachinbox/backend test",
+    "test:backend": "pnpm --filter @reachinbox/backend test",
+    "lint": "pnpm -r lint",
+    "db:migrate": "pnpm --filter @reachinbox/backend db:migrate",
+    "db:generate": "pnpm --filter @reachinbox/backend db:generate",
+    "db:push": "pnpm --filter @reachinbox/backend db:push",
+    "db:studio": "pnpm --filter @reachinbox/backend db:studio",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:reset": "docker compose down -v && docker compose up -d"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
